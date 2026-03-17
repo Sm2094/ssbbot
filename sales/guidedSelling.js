@@ -1,4 +1,4 @@
-const whatWeDo = require("../business/whatWeDo.js");
+const whatWeDo = require("../bot/whatWeDo.js");
 
 function guidedSelling(message, state) {
 
