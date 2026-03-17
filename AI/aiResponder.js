@@ -1,5 +1,7 @@
-import axios from "axios";
-import whatWeDo from "../bot/whatWeDo.js";
+
+const axios = require("axios");
+
+const whatWeDo = require("../bot/whatWeDo.js");
 
 async function aiReply(message) {
 
