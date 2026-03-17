@@ -21,7 +21,7 @@ function saveOrder(phone, order) {
   customers[phone].lastOrder = order;
 }
 
-export default {
+module.exports =  {
   getCustomer,
   updateState,
   saveOrder

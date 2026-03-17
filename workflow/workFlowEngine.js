@@ -40,4 +40,5 @@ function runWorkflow(message, state) {
     nextState: nextNode || state
   };
 }
- export default runWorkflow;
+
+module.exports = runWorkflow

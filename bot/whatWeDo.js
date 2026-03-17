@@ -18,4 +18,4 @@ const whatWeDo = {
   }
 };
 
-export default whatWeDo;
+module.exports =  whatWeDo;

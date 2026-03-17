@@ -70,4 +70,4 @@ Our team will contact you shortly.`,
   return null;
 }
 
-export default guidedSelling;
+module.exports = guidedSelling;
