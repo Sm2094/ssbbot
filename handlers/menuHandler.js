@@ -1,5 +1,4 @@
-
-import whatWeDo from "../bot/whatWeDo.js";
+const whatWeDo = require("../bot/whatWeDo.js");
 
 function handleMenu(message) {
 
