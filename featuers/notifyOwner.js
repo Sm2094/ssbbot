@@ -1,4 +1,4 @@
-import sendMessage from "../utils/sendMessage";
+const sendMessage = require("../utils/sendMessage");
 
 const OWNER_NUMBER = "OWNER_PHONE_NUMBER";
 
