@@ -1,29 +1,30 @@
-
 const axios = require("axios");
+
 const whatWeDo = require("../bot/whatWeDo.js");
 
 async function aiReply(message) {
+
+  const catalogNames = whatWeDo.catalog
+    ? whatWeDo.catalog.map(p => p.name).join(", ")
+    : "No products available";
+
   const response = await axios.post(
     "https://api.openai.com/v1/chat/completions",
     {
       model: "gpt-4o-mini",
+      max_tokens: 100,
       messages: [
         {
           role: "system",
-          content:`${whatWeDo.aiInstructions}
+          content: `
+${whatWeDo.aiInstructions}
 
-            Business: ${whatWeDo.businessName}
-            Products: ${catalogNames}
-            Location: ${whatWeDo.location}
-            Hours: ${whatWeDo.hours}
-
-
-        Your goal:
-        - Help customers buy
-        - Be short and persuasive
-        - Ask follow-up questions
-        - If product not available, say so politely
-      `},
+Business: ${whatWeDo.businessName}
+Products: ${catalogNames}
+Location: ${whatWeDo.location}
+Hours: ${whatWeDo.hours}
+`
+        },
         {
           role: "user",
           content: message
