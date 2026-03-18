@@ -1,31 +1,35 @@
-const express = require("express")
+// server.js
+require("dotenv").config();
+const express = require("express");
+const axios = require("axios");
+const db = require("./db"); // your MySQL pool
+const sendMessage = require("./token");// your WhatsApp sendMessage function
 
-const axios = require('axios');
+const handleMenu = require("./handlers/menuHandler");
+const handleOrder = require("./handlers/orderHandler");
 
+const guidedSelling = require("./sales/guidedSelling");
+const workflow = require("./workflow/workflowEngine");
 
-const handleMenu = require("./handlers/menuHandler.js");
-const handleOrder = require("./handlers/orderHandler.js");
+const aiReply = require("./ai/aiResponder");
 
-const guidedSelling = require("./sales/guidedSelling.js");
-const workflow = require("./workflow/workFlowEngine.js");
+const memory = require("./memory/customerMemory");
 
-const aiReply = require("./AI/aiResponder.js");
-const sendMessage = require("./utils/sendMessage.js");
-
-const memory = require("./memory/customerMemory.js");
-
-const saveCustomer = require("./features/saveCustomer.js");
-const notifyOwner = require("./features/notifyOwner.js");
-const scheduleFollowUp = require("./features/followUpScheduler.js");
+const saveCustomer = require("./features/saveCustomer");
+const notifyOwner = require("./features/notifyOwner");
+const scheduleFollowUp = require("./features/followUpScheduler");
 
 const app = express();
 app.use(express.json());
 
-require("dotenv").config();
+// Optional health check
+app.get("/", (req, res) => {
+  res.send("WhatsApp Bot is running 🚀");
+});
 
+// Webhook verification
 app.get("/webhook", (req, res) => {
-  const VERIFY_TOKEN = "ssbbot-token";
-
+  const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "my_verify_token_123";
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
@@ -38,14 +42,9 @@ app.get("/webhook", (req, res) => {
   }
 });
 
-app.get("/", (req, res) => {
-  res.send("WhatsApp Bot is running 🚀");
-});
-
-
+// Webhook for incoming messages
 app.post("/webhook", async (req, res) => {
   try {
-    // safely access messages
     const changes = req.body.entry?.[0]?.changes?.[0]?.value;
     const messages = changes?.messages;
 
@@ -54,29 +53,29 @@ app.post("/webhook", async (req, res) => {
     const messageObj = messages[0];
     const from = messageObj.from;
 
-    // check if it's text or interactive
-    const text = messageObj.text?.body || messageObj.button?.text || messageObj.list_reply?.title;
+    // Safe parsing for text / buttons / lists
+    const text =
+      messageObj.text?.body ||
+      messageObj.button?.text ||
+      messageObj.list_reply?.title ||
+      "";
 
     if (!text) return res.sendStatus(200);
 
-    console.log("Message from:", from);
-    console.log("Message text:", text);
+    // ⚡ Limit logs so Railway doesn't crash
+    if (Math.random() < 0.1) console.log("Message from:", from, "Text:", text);
 
-    // reply (example)
-    await axios.post(
-      `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
-      {
-        messaging_product: "whatsapp",
-        to: from,
-        text: { body: "Hello 👋 your bot is working!" }
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.META_TOKEN}`,
-          "Content-Type": "application/json"
-        }
+    // Example: store message in DB (optional)
+    db.query(
+      "INSERT INTO messages (sender, message) VALUES (?, ?)",
+      [from, text],
+      (err) => {
+        if (err) console.error("DB error:", err.message);
       }
     );
+
+    // Reply with simple AI placeholder or static message
+    await sendMessage(from, "Hello 👋 your bot is working!");
 
     res.sendStatus(200);
   } catch (err) {
@@ -85,4 +84,5 @@ app.post("/webhook", async (req, res) => {
   }
 });
 
-app.listen(5000, () => console.log("Bot running on port 5000"));
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT} 🚀`));
