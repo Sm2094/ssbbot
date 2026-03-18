@@ -17,7 +17,7 @@ async function aiReply(message) {
         {
           role: "system",
           content: `
-${whatWeDo.aiInstructions}
+      ${whatWeDo.aiInstructions}
 
         Business: ${whatWeDo.businessName}
         Products: ${catalogNames}

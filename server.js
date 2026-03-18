@@ -46,22 +46,17 @@ app.get("/webhook", (req, res) => {
 // Webhook for incoming messages
 app.post("/webhook", async (req, res) => {
   try {
-    const changes = req.body.entry?.[0]?.changes?.[0]?.value;
-    const messages = changes?.messages;
+      const value = req.body.entry?.[0]?.changes?.[0]?.value;
 
-    if (!messages || messages.length === 0) return res.sendStatus(200);
+      // ❌ Ignore non-message events
+      if (!value.messages) return res.sendStatus(200);
 
-    const messageObj = messages[0];
-    const from = messageObj.from;
+      const messageObj = value.messages[0];
 
-    // Safe parsing for text / buttons / lists
-    const text =
-      messageObj.text?.body ||
-      messageObj.button?.text ||
-      messageObj.list_reply?.title ||
-      "";
-
-    if (!text) return res.sendStatus(200);
+      // ❌ Ignore system messages (very important)
+      if (!messageObj.text && !messageObj.button && !messageObj.list_reply) {
+        return res.sendStatus(200);
+      }
 
     // ⚡ Limit logs so Railway doesn't crash
     if (Math.random() < 0.1) console.log("Message from:", from, "Text:", text);
@@ -76,32 +71,40 @@ app.post("/webhook", async (req, res) => {
     );*/
 
     // Reply with simple AI placeholder or static message
-    let reply;
-    // 1. Menu handler (fast responses)
-    reply = handleMenu(text);
+let reply = null;
 
-    // 2. Intent detection
-      const intent = detectIntent(text);
-
-      // 3. Sales overrides (THIS MAKES MONEY)
-      if (intent === "BUY") {
-        reply = "🔥 Nice choice! What product are you interested in?";
+      // 1. Menu (only if greeting)
+      if (["hi", "hello"].includes(text.toLowerCase())) {
+        reply = handleMenu(text);
       }
 
-      if (intent === "PRICE") {
-        reply = "💰 Sure! Which product do you want the price for?";
+      // 2. Intent (only if no reply yet)
+      if (!reply) {
+        const intent = detectIntent(text);
+
+        if (intent === "BUY") {
+          reply = "🔥 Nice choice! What product are you interested in?";
+        }
+
+        if (intent === "PRICE") {
+          reply = "💰 Sure! Which product do you want the price for?";
+        }
       }
 
+      // 3. AI fallback
+      if (!reply) {
+        reply = await aiReply(text);
+      }
 
-    // 2. If menu didn't handle → try AI
-    if (!reply) {
-      reply = await aiReply(text);
-    }
+      if (!text || text.trim() === "") {
+        return res.sendStatus(200);
+      }
 
-    // 3. Send reply
-    await sendMessage(from, reply);
+      // 4. Send ONLY ONCE
+      await sendMessage(from, reply);
 
-    res.sendStatus(200);
+
+
   } catch (err) {
     console.error("Webhook error:", err.response?.data || err.message);
     res.sendStatus(500);
