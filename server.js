@@ -40,61 +40,47 @@ app.get("/", (req, res) => {
   res.send("WhatsApp Bot is running 🚀");
 });
 
+
 app.post("/webhook", async (req, res) => {
+  try {
+    // safely access messages
+    const changes = req.body.entry?.[0]?.changes?.[0]?.value;
+    const messages = changes?.messages;
 
-  const message = req.body.entry[0].changes[0].value.messages[0].text.body;
-  const from = req.body.entry[0].changes[0].value.messages[0].from;
+    if (!messages || messages.length === 0) return res.sendStatus(200);
 
-  // Save customer lead
-  saveCustomer(from);
+    const messageObj = messages[0];
+    const from = messageObj.from;
 
-  // Notify business owner
-  notifyOwner(from, message);
+    // check if it's text or interactive
+    const text = messageObj.text?.body || messageObj.button?.text || messageObj.list_reply?.title;
 
-  const customer = memory.getCustomer(from);
+    if (!text) return res.sendStatus(200);
 
-  let result;
+    console.log("Message from:", from);
+    console.log("Message text:", text);
 
-  // Guided selling
-  result = guidedSelling(message, customer.state);
+    // reply (example)
+    await axios.post(
+      `https://graph.facebook.com/v19.0/${process.env.PHONE_NUMBER_ID}/messages`,
+      {
+        messaging_product: "whatsapp",
+        to: from,
+        text: { body: "Hello 👋 your bot is working!" }
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.META_TOKEN}`,
+          "Content-Type": "application/json"
+        }
+      }
+    );
 
-  // Workflow
-  if (!result) {
-    result = workflow(message, customer.state);
+    res.sendStatus(200);
+  } catch (err) {
+    console.error("Webhook error:", err.message);
+    res.sendStatus(500);
   }
-
-  // Menu
-  if (!result) {
-    const menuReply = handleMenu(message);
-    if (menuReply) result = { reply: menuReply };
-  }
-
-  // Order detection
-  if (!result) {
-    const orderReply = handleOrder(message);
-    if (orderReply) {
-
-      // Schedule follow-up if user doesn't buy
-      scheduleFollowUp(from, message);
-
-      result = { reply: orderReply };
-    }
-  }
-
-  // AI fallback
-  if (!result) {
-    const ai = await aiReply(message);
-    result = { reply: ai };
-  }
-
-  if (result.nextState !== undefined) {
-    memory.updateState(from, result.nextState);
-  }
-
-  await sendMessage(from, result.reply);
-
-  res.sendStatus(200);
-
 });
 
 app.listen(5000, () => console.log("Bot running on port 5000"));
