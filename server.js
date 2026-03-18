@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 
 // Webhook verification
 app.get("/webhook", (req, res) => {
-  const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "my_verify_token_123";
+  const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "ssbbot_token";
   const mode = req.query["hub.mode"];
   const token = req.query["hub.verify_token"];
   const challenge = req.query["hub.challenge"];
