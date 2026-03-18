@@ -5,19 +5,19 @@ const axios = require("axios");
 const db = require("./DB/db.js"); // your MySQL pool
 const sendMessage = require("./utils/sendMessage.js");// your WhatsApp sendMessage function
 
-const handleMenu = require("./handlers/menuHandler");
-const handleOrder = require("./handlers/orderHandler");
+const handleMenu = require("./handlers/menuHandler.js");
+const handleOrder = require("./handlers/orderHandler.js");
 
-const guidedSelling = require("./sales/guidedSelling");
-const workflow = require("./workflow/workflowEngine");
+const guidedSelling = require("./sales/guidedSelling.js");
+const workflow = require("./workflow/workflowEngine.js");
 
-const aiReply = require("./ai/aiResponder");
+const aiReply = require("./AI/aiResponder.js");
 
-const memory = require("./memory/customerMemory");
+const memory = require("./memory/customerMemory.js");
 
-const saveCustomer = require("./features/saveCustomer");
-const notifyOwner = require("./features/notifyOwner");
-const scheduleFollowUp = require("./features/followUpScheduler");
+const saveCustomer = require("./features/saveCustomer.js");
+const notifyOwner = require("./features/notifyOwner.js");
+const scheduleFollowUp = require("./features/followUpScheduler.js");
 
 const app = express();
 app.use(express.json());
