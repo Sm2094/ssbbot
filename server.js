@@ -9,7 +9,7 @@ const handleMenu = require("./handlers/menuHandler.js");
 const handleOrder = require("./handlers/orderHandler.js");
 
 const guidedSelling = require("./sales/guidedSelling.js");
-const workflow = require("./workflow/workflowEngine.js");
+const workflow = require("./workflow/workFlowEngine.js");
 
 const aiReply = require("./AI/aiResponder.js");
 
