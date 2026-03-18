@@ -76,9 +76,8 @@ app.post("/webhook", async (req, res) => {
     let reply = null;
 
     // 1. Menu
-    if (["hi", "hello"].includes(text.toLowerCase())) {
+    // 1. Menu handles greetings + options
       reply = handleMenu(text);
-    }
 
     // 2. Intent
     if (!reply) {
