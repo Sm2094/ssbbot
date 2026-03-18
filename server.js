@@ -75,7 +75,16 @@ app.post("/webhook", async (req, res) => {
     );*/
 
     // Reply with simple AI placeholder or static message
-    await sendMessage(from, "Hello 👋 your bot is working!");
+    // 1. Menu handler (fast responses)
+    let reply = handleMenu(text);
+
+    // 2. If menu didn't handle → try AI
+    if (!reply) {
+      reply = await aiReply(text);
+    }
+
+    // 3. Send reply
+    await sendMessage(from, reply);
 
     res.sendStatus(200);
   } catch (err) {

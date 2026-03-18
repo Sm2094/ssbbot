@@ -1,10 +1,8 @@
 
 const axios = require("axios");
-
 const whatWeDo = require("../bot/whatWeDo.js");
 
 async function aiReply(message) {
-
   const response = await axios.post(
     "https://api.openai.com/v1/chat/completions",
     {
@@ -12,12 +10,16 @@ async function aiReply(message) {
       messages: [
         {
           role: "system",
-          content: `You are an assistant for ${whatWeDo.businessName}.
+          content: `You are a sales assistant for ${whatWeDo.businessName}.
 Products available: ${whatWeDo.catalog.map(p => p.name).join(", ")}
 Location: ${whatWeDo.location}
 Hours: ${whatWeDo.hours}
 
-If a customer asks about something not in the catalog, say we don't sell it.`
+Your goal:
+- Help customers buy
+- Be short and persuasive
+- Ask follow-up questions
+- If product not available, say so politely`
         },
         {
           role: "user",
@@ -27,7 +29,8 @@ If a customer asks about something not in the catalog, say we don't sell it.`
     },
     {
       headers: {
-        Authorization: `Bearer YOUR_OPENAI_KEY`
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json"
       }
     }
   );
