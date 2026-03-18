@@ -2,7 +2,7 @@
 require("dotenv").config();
 const express = require("express");
 const axios = require("axios");
-const db = require("./db.js"); // your MySQL pool
+const db = require("./DB/db.js"); // your MySQL pool
 const sendMessage = require("./utils/sendMessage.js");// your WhatsApp sendMessage function
 
 const handleMenu = require("./handlers/menuHandler");
