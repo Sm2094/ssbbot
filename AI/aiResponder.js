@@ -10,17 +10,20 @@ async function aiReply(message) {
       messages: [
         {
           role: "system",
-          content: `You are a sales assistant for ${whatWeDo.businessName}.
-Products available: ${whatWeDo.catalog.map(p => p.name).join(", ")}
-Location: ${whatWeDo.location}
-Hours: ${whatWeDo.hours}
+          content:`${whatWeDo.aiInstructions}
 
-Your goal:
-- Help customers buy
-- Be short and persuasive
-- Ask follow-up questions
-- If product not available, say so politely`
-        },
+            Business: ${whatWeDo.businessName}
+            Products: ${catalogNames}
+            Location: ${whatWeDo.location}
+            Hours: ${whatWeDo.hours}
+
+
+        Your goal:
+        - Help customers buy
+        - Be short and persuasive
+        - Ask follow-up questions
+        - If product not available, say so politely
+      `},
         {
           role: "user",
           content: message

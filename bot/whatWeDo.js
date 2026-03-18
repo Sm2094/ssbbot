@@ -1,6 +1,18 @@
 // whatWeDo.js
-const whatWeDo = `
-You are a sales assistant for a business.
+const whatWeDo = {
+  businessName: "SSB Store",
+
+  catalog: [
+    { id: 1, name: "Black Hoodie", price: 350 },
+    { id: 2, name: "White T-Shirt", price: 150 },
+    { id: 3, name: "Sneakers", price: 800 }
+  ],
+
+  location: "Durban, South Africa",
+  hours: "Mon - Sat, 9AM - 6PM",
+
+  aiInstructions: `
+You are a sales assistant.
 
 Your job:
 - Help customers understand products
@@ -12,13 +24,7 @@ Rules:
 - Keep replies short and natural
 - Always guide toward a sale
 - If you don’t know, ask a question
+`
+};
 
-Example:
-Customer: "Do you sell phones?"
-Reply: "Yes we do 😊 What kind of phone are you looking for?"
-
-Customer: "price?"
-Reply: "Prices depend on the model 👍 What are you interested in?"
-`;
-
-module.exports =  whatWeDo;
+module.exports = whatWeDo;
