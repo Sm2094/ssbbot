@@ -7,6 +7,7 @@ const sendMessage = require("./utils/sendMessage.js");// your WhatsApp sendMessa
 
 const handleMenu = require("./handlers/menuHandler.js");
 const handleOrder = require("./handlers/orderHandler.js");
+const detectIntent = require("./sales/detectIntent.js");
 
 const guidedSelling = require("./sales/guidedSelling.js");
 const workflow = require("./workflow/workFlowEngine.js");
@@ -75,8 +76,22 @@ app.post("/webhook", async (req, res) => {
     );*/
 
     // Reply with simple AI placeholder or static message
+    let reply;
     // 1. Menu handler (fast responses)
-    let reply = handleMenu(text);
+    reply = handleMenu(text);
+
+    // 2. Intent detection
+      const intent = detectIntent(text);
+
+      // 3. Sales overrides (THIS MAKES MONEY)
+      if (intent === "BUY") {
+        reply = "🔥 Nice choice! What product are you interested in?";
+      }
+
+      if (intent === "PRICE") {
+        reply = "💰 Sure! Which product do you want the price for?";
+      }
+
 
     // 2. If menu didn't handle → try AI
     if (!reply) {
