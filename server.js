@@ -19,6 +19,21 @@ const scheduleFollowUp = require("./features/followUpScheduler.js");
 const app = express();
 app.use(express.json());
 
+app.get("/webhook", (req, res) => {
+  const VERIFY_TOKEN = "ssbbot-token";
+
+  const mode = req.query["hub.mode"];
+  const token = req.query["hub.verify_token"];
+  const challenge = req.query["hub.challenge"];
+
+  if (mode === "subscribe" && token === VERIFY_TOKEN) {
+    console.log("Webhook verified ✅");
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
+  }
+});
+
 app.post("/webhook", async (req, res) => {
 
   const message = req.body.entry[0].changes[0].value.messages[0].text.body;
