@@ -80,7 +80,8 @@ app.post("/webhook", async (req, res) => {
 
     // 2. If menu didn't handle → try AI
     if (!reply) {
-      reply = await aiReply(text);
+      //reply = await aiReply(text);
+      reply = "Test reply working";
     }
 
     // 3. Send reply
@@ -88,7 +89,7 @@ app.post("/webhook", async (req, res) => {
 
     res.sendStatus(200);
   } catch (err) {
-    console.error("Webhook error:", err.message);
+    console.error("Webhook error:", err.response?.data || err.message);
     res.sendStatus(500);
   }
 });
