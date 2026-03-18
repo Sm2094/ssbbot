@@ -80,8 +80,7 @@ app.post("/webhook", async (req, res) => {
 
     // 2. If menu didn't handle → try AI
     if (!reply) {
-      //reply = await aiReply(text);
-      reply = "Test reply working";
+      reply = await aiReply(text);
     }
 
     // 3. Send reply
