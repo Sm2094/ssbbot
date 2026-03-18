@@ -34,6 +34,10 @@ app.get("/webhook", (req, res) => {
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("WhatsApp Bot is running 🚀");
+});
+
 app.post("/webhook", async (req, res) => {
 
   const message = req.body.entry[0].changes[0].value.messages[0].text.body;
