@@ -19,6 +19,8 @@ const scheduleFollowUp = require("./features/followUpScheduler.js");
 const app = express();
 app.use(express.json());
 
+require("dotenv").config();
+
 app.get("/webhook", (req, res) => {
   const VERIFY_TOKEN = "ssbbot-token";
 
