@@ -66,13 +66,13 @@ app.post("/webhook", async (req, res) => {
     if (Math.random() < 0.1) console.log("Message from:", from, "Text:", text);
 
     // Example: store message in DB (optional)
-    db.query(
+   /* db.query(
       "INSERT INTO messages (sender, message) VALUES (?, ?)",
       [from, text],
       (err) => {
         if (err) console.error("DB error:", err.message);
       }
-    );
+    );*/
 
     // Reply with simple AI placeholder or static message
     await sendMessage(from, "Hello 👋 your bot is working!");
