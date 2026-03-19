@@ -41,7 +41,12 @@ app.get("/", (req, res) => {
       return res.sendStatus(200);
     }
 
-    const messageId = messageObj.id;
+
+
+     const messageObj = messages[0];
+     const from = messageObj.from;
+
+         const messageId = messageObj.id;
 
 // ❌ If already processed → ignore
       if (processedMessages.has(messageId)) {
@@ -56,9 +61,7 @@ app.get("/", (req, res) => {
         processedMessages.delete(messageId);
       }, 300000);
 
-     const messageObj = messages[0];
-     const from = messageObj.from;
-
+      
     let text = null;
 
     if (messageObj.type === "text") {
