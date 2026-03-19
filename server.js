@@ -61,17 +61,27 @@ app.post("/webhook", async (req, res) => {
     const messageObj = messages[0];
     const from = messageObj.from;
 
-    // ✅ Extract text
-    const text =
-      messageObj.text?.body ||
-      messageObj.button?.text ||
-      messageObj.list_reply?.title ||
-      "";
+      // ✅ ONLY allow real text/button/list messages
+      let text = null;
 
-    // Ignore empty/system messages
-    if (!text || text.trim() === "") {
-      return res.sendStatus(200);
-    }
+      if (messageObj.type === "text") {
+        text = messageObj.text.body;
+      }
+
+      if (messageObj.type === "button") {
+        text = messageObj.button.text;
+      }
+
+      if (messageObj.type === "interactive") {
+        text =
+          messageObj.interactive?.button_reply?.title ||
+          messageObj.interactive?.list_reply?.title;
+      }
+
+      // ❌ Ignore EVERYTHING else
+      if (!text || text.trim() === "") {
+        return res.sendStatus(200);
+      }
 
     let reply = null;
 
