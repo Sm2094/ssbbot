@@ -19,7 +19,7 @@ const memory = require("./memory/customerMemory.js");
 
 const saveCustomer = require("./features/saveCustomer.js");
 const notifyOwner = require("./features/notifyOwner.js");
-const scheduleFollowUp = require("./features/followUpScheduler.js");
+//const scheduleFollowUp = require("./features/followUpScheduler.js");
 
 const app = express();
 app.use(express.json());
@@ -61,7 +61,7 @@ app.get("/", (req, res) => {
         processedMessages.delete(messageId);
       }, 300000);
 
-      
+
     let text = null;
 
     if (messageObj.type === "text") {
