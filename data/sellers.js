@@ -1,7 +1,7 @@
 const sellers = {
   "store1": {
     name: "Drip Clothing",
-    ownerPhone: "27833531131",
+    ownerPhone: "2783XXXXX",
     catalog: [
       { id: 1, name: "Black Hoodie", price: 500 },
       { id: 2, name: "White T-Shirt", price: 200 }
@@ -12,7 +12,7 @@ const sellers = {
 
   "store2": {
     name: "Tech Deals",
-    ownerPhone: "27764507767",
+    ownerPhone: "2776XXXX",
     catalog: [
       { id: 1, name: "iPhone 11", price: 7000 },
       { id: 2, name: "AirPods", price: 1500 }
