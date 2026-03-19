@@ -4,21 +4,36 @@ const pendingFollowUps = {};
 
 function scheduleFollowUp(phone, product) {
 
-  const delay = 1000 * 60 * 60 * 24; // 24 hours
+  // ❌ Prevent duplicate timers
+  if (pendingFollowUps[phone]) {
+    clearTimeout(pendingFollowUps[phone]);
+  }
+
+  const delay = 1000 * 60 * 60; // 1 hour (use short time for testing)
 
   pendingFollowUps[phone] = setTimeout(async () => {
 
-    const text = `Hi 👋
+    const text = `Hey 👋 just checking in.
 
-You asked about ${product} yesterday.
-
-We still have it available.
-Would you like to order today?`;
+Are you still interested in ${product}?`;
 
     await sendMessage(phone, text);
 
-  }, delay);
+    delete pendingFollowUps[phone]; // cleanup
 
+  }, delay);
 }
 
-module.exports = scheduleFollowUp;
+
+// ✅ Cancel if user replies
+function cancelFollowUp(phone) {
+  if (pendingFollowUps[phone]) {
+    clearTimeout(pendingFollowUps[phone]);
+    delete pendingFollowUps[phone];
+  }
+}
+
+module.exports = {
+  scheduleFollowUp,
+  cancelFollowUp
+};

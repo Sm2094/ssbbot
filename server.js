@@ -19,7 +19,7 @@ const memory = require("./memory/customerMemory.js");
 
 const saveCustomer = require("./features/saveCustomer.js");
 const notifyOwner = require("./features/notifyOwner.js");
-//const scheduleFollowUp = require("./features/followUpScheduler.js");
+const { scheduleFollowUp, cancelFollowUp } = require("./features/followUpScheduler.js");
 
 const app = express();
 app.use(express.json());
@@ -87,6 +87,8 @@ app.get("/", (req, res) => {
 
     // 🧠 THEN process in background
     let reply = null;
+    // ✅ User replied → cancel any pending follow-up
+    cancelFollowUp(from);
 
     reply = handleMenu(text);
 
@@ -95,6 +97,7 @@ app.get("/", (req, res) => {
 
       if (intent === "BUY") {
         reply = "🔥 Nice choice! What product are you interested in?";
+        scheduleFollowUp(from, "our products");
       }
 
       if (intent === "PRICE") {
