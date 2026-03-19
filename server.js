@@ -1,66 +1,51 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
-const axios = require("axios");
-const db = require("./DB/db.js"); // your MySQL pool
-const sendMessage = require("./utils/sendMessage.js");// your WhatsApp sendMessage function
+const sendMessage = require("./utils/sendMessage.js");
 
 const processedMessages = new Set();
 
 const handleMenu = require("./handlers/menuHandler.js");
-const handleOrder = require("./handlers/orderHandler.js");
 const detectIntent = require("./sales/detectIntent.js");
-
-const guidedSelling = require("./sales/guidedSelling.js");
-const workflow = require("./workflow/workFlowEngine.js");
-
 const aiReply = require("./AI/aiResponder.js");
 
-const memory = require("./memory/customerMemory.js");
-
-const saveCustomer = require("./features/saveCustomer.js");
-const notifyOwner = require("./features/notifyOwner.js");
 const { scheduleFollowUp, cancelFollowUp } = require("./features/followUpScheduler.js");
+
+const sellers = require("./data/sellers.js");
+const { setSeller, getSeller } = require("./memory/customerMemory.js");
 
 const app = express();
 app.use(express.json());
 
-// Optional health check
+// Health check
 app.get("/", (req, res) => {
   res.send("WhatsApp Bot is running 🚀");
 });
 
-// Webhook verification
-  app.post("/webhook", async (req, res) => {
+// Webhook
+app.post("/webhook", async (req, res) => {
   try {
     const value = req.body.entry?.[0]?.changes?.[0]?.value;
 
-      if (!value.messages) return res.sendStatus(200);
+    if (!value.messages) return res.sendStatus(200);
 
     const messages = value.messages;
-      if (!messages || messages.length === 0) {
+    if (!messages || messages.length === 0) {
       return res.sendStatus(200);
     }
 
-     const messageObj = messages[0];
-     const from = messageObj.from;
+    const messageObj = messages[0];
+    const from = messageObj.from;
+    const messageId = messageObj.id;
 
-         const messageId = messageObj.id;
+    // جلوگیری از تکرار
+    if (processedMessages.has(messageId)) {
+      return res.sendStatus(200);
+    }
 
-// ❌ If already processed → ignore
-      if (processedMessages.has(messageId)) {
-        return res.sendStatus(200);
-      }
+    processedMessages.add(messageId);
+    setTimeout(() => processedMessages.delete(messageId), 300000);
 
-      // ✅ Mark as processed
-      processedMessages.add(messageId);
-
-      // Optional: clean memory after 5 min
-      setTimeout(() => {
-        processedMessages.delete(messageId);
-      }, 300000);
-
-
+    // Extract text
     let text = null;
 
     if (messageObj.type === "text") {
@@ -81,41 +66,76 @@ app.get("/", (req, res) => {
       return res.sendStatus(200);
     }
 
-    // ✅ RESPOND IMMEDIATELY (IMPORTANT)
+    // Respond fast
     res.sendStatus(200);
 
-       const sellers = require("./data/sellers.js");
-      const { setSeller, getSeller } = require("./memory/customerMemory.js");
+    const input = text.toLowerCase();
 
-        // First message detection
-        if (!getSeller(from)) {
+    // =========================
+    // 🏪 STORE SELECTION
+    // =========================
+    if (!getSeller(from)) {
 
-          const sellerKey = text.toLowerCase();
+      // Greeting → show stores
+      if (["hi", "hello"].includes(input)) {
+        const storeList = Object.values(sellers)
+          .map(s => `• ${s.name}`)
+          .join("\n");
 
-          if (sellers[sellerKey]) {
-            setSeller(from, sellerKey);
+        return await sendMessage(
+          from,
+          `Welcome 👋\nChoose a store:\n${storeList}`
+        );
+      }
 
-            return await sendMessage(
-              from,
-              `Welcome to ${sellers[sellerKey].name} 😎`
-            );
-          }
+      // Try match store
+      const sellerKey = Object.keys(sellers).find(key => {
+        const seller = sellers[key];
 
-          return await sendMessage(
-            from,
-            "Please enter a valid store code."
-          );
-        }
+        return (
+          key.toLowerCase() === input ||
+          seller.name.toLowerCase().includes(input)
+        );
+      });
 
+      // If found → set seller
+      if (sellerKey) {
+        setSeller(from, sellerKey);
 
-    // 🧠 THEN process in background
+        return await sendMessage(
+          from,
+          `Welcome to ${sellers[sellerKey].name} 😎`
+        );
+      }
+
+      // Not found → show stores again
+      const storeList = Object.values(sellers)
+        .map(s => `• ${s.name}`)
+        .join("\n");
+
+      return await sendMessage(
+        from,
+        `Type a store name:\n${storeList}`
+      );
+    }
+
+    // =========================
+    // 🤖 NORMAL BOT FLOW
+    // =========================
+
+    const sellerId = getSeller(from);
+    const seller = sellers[sellerId];
+
     let reply = null;
-    // ✅ User replied → cancel any pending follow-up
+
+    // Cancel follow-up if user replies
     cancelFollowUp(from);
 
-    reply = handleMenu(text);
+    // Menu
+    reply = handleMenu(text, seller);
 
-      if (!reply) {
+    // Intent
+    if (!reply) {
       const intent = detectIntent(text);
 
       if (intent === "BUY") {
@@ -128,14 +148,15 @@ app.get("/", (req, res) => {
       }
     }
 
-     if (!reply) {
-      reply = await aiReply(text);
+    // AI fallback
+    if (!reply) {
+      reply = await aiReply(text, seller);
     }
 
-      await sendMessage(from, reply);
+    await sendMessage(from, reply);
 
-    } catch (err) {
-      console.error("Webhook error:", err.response?.data || err.message);
+  } catch (err) {
+    console.error("Webhook error:", err.response?.data || err.message);
   }
 });
 
