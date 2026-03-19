@@ -1,28 +1,11 @@
-const customers = {};
+const sessions = {};
 
-function getCustomer(phone) {
-
-  if (!customers[phone]) {
-    customers[phone] = {
-      phone,
-      state: null,
-      lastOrder: null
-    };
-  }
-
-  return customers[phone];
+function setSeller(phone, sellerId) {
+  sessions[phone] = { sellerId };
 }
 
-function updateState(phone, state) {
-  customers[phone].state = state;
+function getSeller(phone) {
+  return sessions[phone]?.sellerId;
 }
 
-function saveOrder(phone, order) {
-  customers[phone].lastOrder = order;
-}
-
-module.exports =  {
-  getCustomer,
-  updateState,
-  saveOrder
-};
+module.exports = { setSeller, getSeller };

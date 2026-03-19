@@ -1,18 +1,14 @@
 const sendMessage = require("../utils/sendMessage");
 
-const OWNER_NUMBER = "OWNER_PHONE_NUMBER";
+async function notifyOwner(seller, customer, message) {
 
-async function notifyOwner(phone, message) {
+    await sendMessage(
+      seller.ownerPhone,
+      `💰 New customer for ${seller.name}
 
-  const text = `📢 New Customer Lead
-
-Customer: ${phone}
-
-Message:
-${message}`;
-
-  await sendMessage(OWNER_NUMBER, text);
-
-}
+  Customer: ${customer}
+  Message: ${message}`
+    );
+  }
 
 module.exports = notifyOwner;

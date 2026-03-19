@@ -2,12 +2,18 @@ const axios = require("axios");
 
 const whatWeDo = require("../bot/whatWeDo.js");
 
-async function aiReply(message) {
+async function aiReply(message, seller) {
 
-  const catalogNames = whatWeDo.catalog
-    ? whatWeDo.catalog.map(p => p.name).join(", ")
+  const catalogNames = seller.catalog
+    ? seller.catalog.map(p => p.name).join(", ")
     : "No products available";
 
+
+  if (catalogNames === "No products available") {
+  return "Let me connect you with the seller 👍";
+}
+
+  try{
   const response = await axios.post(
     "https://api.openai.com/v1/chat/completions",
     {
@@ -17,28 +23,22 @@ async function aiReply(message) {
         {
           role: "system",
           content: `
-      ${whatWeDo.aiInstructions}
+            ${whatWeDo}
 
-        Business: ${whatWeDo.businessName}
-        Products: ${catalogNames}
-        Location: ${whatWeDo.location}
+          Business: ${seller.name}
+          Products: ${catalogNames}
+          Location: ${seller.location}
 
-        SALES RULES:
-        - Max 2 sentences
-        - Max 25 words
-        - Be direct
-        - Always ask a question
-        - Guide customer to buy
-        - No long explanations
-        - Sound like a WhatsApp human, not AI
+          SALES RULES:
+          - Max 2 sentences
+          - Max 20 words
+          - Be natural, like WhatsApp chat
+          - Be confident, not pushy
+          - Only ask a question if needed
+          - Focus on helping customer decide fast
 
-        STYLE:
-        - Friendly 😄
-        - Slightly persuasive
-        - Use emojis (max 1)
-
-        GOAL:
-        Turn every conversation into a sale or next step.
+          GOAL:
+          Move customer closer to buying (not just chatting)
         `
         },
         {
@@ -56,6 +56,13 @@ async function aiReply(message) {
   );
 
   return response.data.choices[0].message.content;
+
+
+  }catch(err){
+    console.error("AI Error:", err.response?.data || err.message);
+
+    return "Sorry 😅 something went wrong. Can you try again?";
+  }
 }
 
 module.exports = aiReply;

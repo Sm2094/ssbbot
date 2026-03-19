@@ -6,6 +6,7 @@ const db = require("./DB/db.js"); // your MySQL pool
 const sendMessage = require("./utils/sendMessage.js");// your WhatsApp sendMessage function
 
 const processedMessages = new Set();
+
 const handleMenu = require("./handlers/menuHandler.js");
 const handleOrder = require("./handlers/orderHandler.js");
 const detectIntent = require("./sales/detectIntent.js");
@@ -41,7 +42,28 @@ app.get("/", (req, res) => {
       return res.sendStatus(200);
     }
 
+    const sellers = require("./data/sellers");
+    const { setSeller, getSeller } = require("./memory/customerMemory");
 
+// First message detection
+if (!getSeller(from)) {
+
+  const sellerKey = text.toLowerCase();
+
+  if (sellers[sellerKey]) {
+    setSeller(from, sellerKey);
+
+    return await sendMessage(
+      from,
+      `Welcome to ${sellers[sellerKey].name} 😎`
+    );
+  }
+
+  return await sendMessage(
+    from,
+    "Please enter a valid store code."
+  );
+}
 
      const messageObj = messages[0];
      const from = messageObj.from;
