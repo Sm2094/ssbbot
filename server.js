@@ -42,29 +42,6 @@ app.get("/", (req, res) => {
       return res.sendStatus(200);
     }
 
-    const sellers = require("./data/sellers");
-    const { setSeller, getSeller } = require("./memory/customerMemory");
-
-// First message detection
-if (!getSeller(from)) {
-
-  const sellerKey = text.toLowerCase();
-
-  if (sellers[sellerKey]) {
-    setSeller(from, sellerKey);
-
-    return await sendMessage(
-      from,
-      `Welcome to ${sellers[sellerKey].name} 😎`
-    );
-  }
-
-  return await sendMessage(
-    from,
-    "Please enter a valid store code."
-  );
-}
-
      const messageObj = messages[0];
      const from = messageObj.from;
 
@@ -106,6 +83,30 @@ if (!getSeller(from)) {
 
     // ✅ RESPOND IMMEDIATELY (IMPORTANT)
     res.sendStatus(200);
+
+       const sellers = require("./data/sellers.js");
+      const { setSeller, getSeller } = require("./memory/customerMemory.js");
+
+        // First message detection
+        if (!getSeller(from)) {
+
+          const sellerKey = text.toLowerCase();
+
+          if (sellers[sellerKey]) {
+            setSeller(from, sellerKey);
+
+            return await sendMessage(
+              from,
+              `Welcome to ${sellers[sellerKey].name} 😎`
+            );
+          }
+
+          return await sendMessage(
+            from,
+            "Please enter a valid store code."
+          );
+        }
+
 
     // 🧠 THEN process in background
     let reply = null;
