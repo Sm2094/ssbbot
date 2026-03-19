@@ -5,6 +5,7 @@ const axios = require("axios");
 const db = require("./DB/db.js"); // your MySQL pool
 const sendMessage = require("./utils/sendMessage.js");// your WhatsApp sendMessage function
 
+const processedMessages = new Set();
 const handleMenu = require("./handlers/menuHandler.js");
 const handleOrder = require("./handlers/orderHandler.js");
 const detectIntent = require("./sales/detectIntent.js");
@@ -29,68 +30,64 @@ app.get("/", (req, res) => {
 });
 
 // Webhook verification
-app.get("/webhook", (req, res) => {
-  const VERIFY_TOKEN = process.env.WEBHOOK_VERIFY_TOKEN || "ssbbot_token";
-  const mode = req.query["hub.mode"];
-  const token = req.query["hub.verify_token"];
-  const challenge = req.query["hub.challenge"];
-
-  if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("Webhook verified ✅");
-    res.status(200).send(challenge);
-  } else {
-    res.sendStatus(403);
-  }
-});
-
-// Webhook for incoming messages
-app.post("/webhook", async (req, res) => {
+  app.post("/webhook", async (req, res) => {
   try {
     const value = req.body.entry?.[0]?.changes?.[0]?.value;
 
-    // Ignore non-message events
-    if (!value.messages) return res.sendStatus(200);
+      if (!value.messages) return res.sendStatus(200);
 
     const messages = value.messages;
-
-    if (!messages || messages.length === 0) {
+      if (!messages || messages.length === 0) {
       return res.sendStatus(200);
     }
 
-    // ✅ DECLARE ONCE
-    const messageObj = messages[0];
-    const from = messageObj.from;
+    const messageId = messageObj.id;
 
-      // ✅ ONLY allow real text/button/list messages
-      let text = null;
-
-      if (messageObj.type === "text") {
-        text = messageObj.text.body;
-      }
-
-      if (messageObj.type === "button") {
-        text = messageObj.button.text;
-      }
-
-      if (messageObj.type === "interactive") {
-        text =
-          messageObj.interactive?.button_reply?.title ||
-          messageObj.interactive?.list_reply?.title;
-      }
-
-      // ❌ Ignore EVERYTHING else
-      if (!text || text.trim() === "") {
+// ❌ If already processed → ignore
+      if (processedMessages.has(messageId)) {
         return res.sendStatus(200);
       }
 
+      // ✅ Mark as processed
+      processedMessages.add(messageId);
+
+      // Optional: clean memory after 5 min
+      setTimeout(() => {
+        processedMessages.delete(messageId);
+      }, 300000);
+
+     const messageObj = messages[0];
+     const from = messageObj.from;
+
+    let text = null;
+
+    if (messageObj.type === "text") {
+      text = messageObj.text.body;
+    }
+
+    if (messageObj.type === "button") {
+      text = messageObj.button.text;
+    }
+
+    if (messageObj.type === "interactive") {
+      text =
+        messageObj.interactive?.button_reply?.title ||
+        messageObj.interactive?.list_reply?.title;
+    }
+
+    if (!text || text.trim() === "") {
+      return res.sendStatus(200);
+    }
+
+    // ✅ RESPOND IMMEDIATELY (IMPORTANT)
+    res.sendStatus(200);
+
+    // 🧠 THEN process in background
     let reply = null;
 
-    // 1. Menu
-    // 1. Menu handles greetings + options
-      reply = handleMenu(text);
+    reply = handleMenu(text);
 
-    // 2. Intent
-    if (!reply) {
+      if (!reply) {
       const intent = detectIntent(text);
 
       if (intent === "BUY") {
@@ -102,19 +99,14 @@ app.post("/webhook", async (req, res) => {
       }
     }
 
-    // 3. AI fallback
-    if (!reply) {
+     if (!reply) {
       reply = await aiReply(text);
     }
 
-    // 4. Send
-    await sendMessage(from, reply);
+      await sendMessage(from, reply);
 
-    res.sendStatus(200);
-
-  } catch (err) {
-    console.error("Webhook error:", err.response?.data || err.message);
-    res.sendStatus(500);
+    } catch (err) {
+      console.error("Webhook error:", err.response?.data || err.message);
   }
 });
 
